@@ -20,6 +20,5 @@
     "@jsquash/resize": "^2.1.0",
     "@jsquash/webp": "^1.4.0",
     "query-string": "^9.1.0"
-  },
-  "pnpm": {}
+  }
 }
