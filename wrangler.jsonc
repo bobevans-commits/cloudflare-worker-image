@@ -1,8 +1,8 @@
 {
   "name": "cloudflare-worker-image",
-  "main": "functions/index.py",
+  "main": "functions/index.js",
   "compatibility_date": "2024-11-11",
-  "compatibility_flags": ["python_workers", "nodejs_compat"], // 兼容性标志
+  "compatibility_flags": ["nodejs_compat"], // 兼容性标志
 
   // Variable bindings. These are arbitrary, plaintext strings (similar to environment variables)
   // Note: Use secrets to store sensitive data.
