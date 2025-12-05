@@ -29,11 +29,6 @@ export const CACHE_MAX_AGE = 31536000;
 export const JSON_HEADERS = { 'Content-Type': 'application/json' };
 
 /**
- * 默认 API Key
- */
-export const DEFAULT_API_KEY = '123456';
-
-/**
  * 缩略图最大尺寸
  */
 export const THUMBNAIL_MAX_SIZE = 5000;
