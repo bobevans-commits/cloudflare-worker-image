@@ -80,6 +80,7 @@ function validateQuality(quality) {
 
 /**
  * 处理缩略图生成
+ * 注意：缩略图统一使用 webp 格式输出
  * @param {Object} c - Hono 上下文对象
  * @returns {Promise<Response>} 缩略图响应
  */
@@ -90,14 +91,14 @@ export async function generateThumbnail(c) {
 		const height = c.req.query('height') || c.req.query('h');
 		const fitMethod = c.req.query('fit') || 'cover';
 		const quality = c.req.query('quality') || c.req.query('q');
-		const format = c.req.query('format') || 'webp';
+		// 缩略图统一使用 webp 格式，忽略用户传入的 format 参数
+		const formatValue = 'webp';
 		
 		// 验证参数
-		let widthValue, heightValue, fitMethodValue, formatValue, qualityValue;
+		let widthValue, heightValue, fitMethodValue, qualityValue;
 		try {
 			({ widthValue, heightValue } = validateDimensions(width, height));
 			fitMethodValue = validateFitMethod(fitMethod);
-			formatValue = validateFormat(format);
 			qualityValue = validateQuality(quality);
 		} catch (e) {
 			return c.json({ error: e.message }, 400);
@@ -150,13 +151,14 @@ export async function generateThumbnail(c) {
 			return c.json({ error: `Failed to encode image: ${e.message}` }, 500);
 		}
 		
-		// 返回缩略图
+		// 返回缩略图（统一使用 webp 格式）
 		return c.body(thumbnailImage, 200, {
-			'Content-Type': `image/${formatValue}`,
+			'Content-Type': 'image/webp',
 			'Cache-Control': `public, max-age=${CACHE_MAX_AGE}, immutable`,
 			'X-Thumbnail-Size': `${widthValue}x${heightValue}`,
 			'X-Original-Size': imageData.byteLength.toString(),
-			'X-Thumbnail-Size-Bytes': thumbnailImage.byteLength.toString()
+			'X-Thumbnail-Size-Bytes': thumbnailImage.byteLength.toString(),
+			'X-Format': 'webp' // 标识输出格式
 		});
 		
 	} catch (e) {
