@@ -10,24 +10,26 @@ import {
 	CACHE_MAX_AGE, 
 	SUPPORTED_FORMATS,
 	THUMBNAIL_MAX_SIZE,
-	VALID_FIT_METHODS
+	VALID_FIT_METHODS,
+	DEFAULT_THUMBNAIL_WIDTH,
+	DEFAULT_THUMBNAIL_HEIGHT,
+	DEFAULT_THUMBNAIL_FIT
 } from '../constants.js';
 import { getImageData } from './imageController.js';
 
 /**
  * 验证并解析宽度和高度参数
+ * 默认值：width=200, height=200
  * @param {string} width - 宽度参数
  * @param {string} height - 高度参数
  * @returns {Object} 宽度和高度值
  */
 function validateDimensions(width, height) {
-	if (!width || !height) {
-		throw new Error('Missing width and height parameters. Use ?width=W&height=H or ?w=W&h=H');
-	}
+	// 如果未提供参数，使用默认值
+	const widthValue = width ? parseInt(width, 10) : DEFAULT_THUMBNAIL_WIDTH;
+	const heightValue = height ? parseInt(height, 10) : DEFAULT_THUMBNAIL_HEIGHT;
 	
-	const widthValue = parseInt(width, 10);
-	const heightValue = parseInt(height, 10);
-	
+	// 验证数值有效性
 	if (isNaN(widthValue) || isNaN(heightValue) || widthValue <= 0 || heightValue <= 0 || 
 		widthValue > THUMBNAIL_MAX_SIZE || heightValue > THUMBNAIL_MAX_SIZE) {
 		throw new Error(`Width and height must be between 1 and ${THUMBNAIL_MAX_SIZE}`);
@@ -38,10 +40,16 @@ function validateDimensions(width, height) {
 
 /**
  * 验证裁剪模式
+ * 默认值：cover
  * @param {string} fitMethod - 裁剪模式
  * @returns {string} 验证后的裁剪模式
  */
 function validateFitMethod(fitMethod) {
+	// 如果未提供参数，使用默认值
+	if (!fitMethod) {
+		return DEFAULT_THUMBNAIL_FIT;
+	}
+	
 	const fitMethodValue = fitMethod.toLowerCase();
 	if (!VALID_FIT_METHODS.includes(fitMethodValue)) {
 		throw new Error(`Invalid fit method. Use one of: ${VALID_FIT_METHODS.join(', ')}`);
@@ -64,10 +72,12 @@ function validateFormat(format) {
 
 /**
  * 验证质量参数
+ * 默认值：85
  * @param {string} quality - 质量参数
  * @returns {number} 质量值
  */
 function validateQuality(quality) {
+	// 如果未提供参数，使用默认值
 	if (!quality) return DEFAULT_QUALITY;
 	
 	const qualityValue = parseInt(quality, 10);
@@ -86,10 +96,10 @@ function validateQuality(quality) {
  */
 export async function generateThumbnail(c) {
 	try {
-		// 解析查询参数
+		// 解析查询参数（所有参数都有默认值）
 		const width = c.req.query('width') || c.req.query('w');
 		const height = c.req.query('height') || c.req.query('h');
-		const fitMethod = c.req.query('fit') || 'cover';
+		const fitMethod = c.req.query('fit');
 		const quality = c.req.query('quality') || c.req.query('q');
 		// 缩略图统一使用 webp 格式，忽略用户传入的 format 参数
 		const formatValue = 'webp';

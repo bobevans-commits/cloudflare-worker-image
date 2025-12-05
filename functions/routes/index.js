@@ -4,6 +4,5 @@
  */
 
 export { createHealthRoutes } from './healthRoutes.js';
-export { createThumbnailRoutes } from './thumbnailRoutes.js';
 export { createImageRoutes } from './imageRoutes.js';
 

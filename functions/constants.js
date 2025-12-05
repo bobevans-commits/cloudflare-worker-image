@@ -34,6 +34,21 @@ export const JSON_HEADERS = { 'Content-Type': 'application/json' };
 export const THUMBNAIL_MAX_SIZE = 5000;
 
 /**
+ * 缩略图默认宽度
+ */
+export const DEFAULT_THUMBNAIL_WIDTH = 200;
+
+/**
+ * 缩略图默认高度
+ */
+export const DEFAULT_THUMBNAIL_HEIGHT = 200;
+
+/**
+ * 缩略图默认裁剪模式
+ */
+export const DEFAULT_THUMBNAIL_FIT = 'cover';
+
+/**
  * 图片转换最大尺寸
  */
 export const IMAGE_MAX_SIZE = 10000;

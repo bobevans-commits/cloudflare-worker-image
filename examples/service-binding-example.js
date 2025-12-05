@@ -40,7 +40,7 @@ export async function generateThumbnail(env, imageUrl, options = {}) {
 	
 	// 构建请求 URL（域名可以是任意值，服务绑定会忽略）
 	// 注意：format 参数将被忽略，缩略图统一使用 webp 格式
-	const url = new URL('https://example.com/thumb');
+	const url = new URL('https://example.com/image/thumb');
 	url.searchParams.set('url', imageUrl);
 	url.searchParams.set('width', width.toString());
 	url.searchParams.set('height', height.toString());
@@ -88,7 +88,7 @@ export async function generateThumbnailFromFile(env, imageData, options = {}) {
 	
 	// 构建请求 URL
 	// 注意：format 参数将被忽略，缩略图统一使用 webp 格式
-	const url = new URL('https://example.com/thumb');
+	const url = new URL('https://example.com/image/thumb');
 	url.searchParams.set('width', width.toString());
 	url.searchParams.set('height', height.toString());
 	url.searchParams.set('fit', fit);

@@ -26,7 +26,7 @@
 export default {
 	async fetch(request, env, ctx) {
 		// 构建请求 URL
-		const url = new URL('https://example.com/thumb'); // 使用任意域名，服务绑定会忽略域名
+		const url = new URL('https://example.com/image/thumb'); // 使用任意域名，服务绑定会忽略域名
 		url.searchParams.set('url', 'https://example.com/image.jpg');
 		url.searchParams.set('width', '200');
 		url.searchParams.set('height', '200');
@@ -63,7 +63,7 @@ export default {
 		const file = formData.get('image');
 
 		// 构建请求 URL
-		const url = new URL('https://example.com/thumb');
+		const url = new URL('https://example.com/image/thumb');
 		url.searchParams.set('width', '200');
 		url.searchParams.set('height', '200');
 		url.searchParams.set('fit', 'cover');
@@ -151,7 +151,7 @@ const app = new Hono();
 // 生成缩略图的辅助函数
 // 注意：缩略图统一使用 webp 格式输出，format 参数将被忽略
 async function generateThumbnail(env, imageUrl, width = 200, height = 200) {
-	const url = new URL('https://example.com/thumb');
+	const url = new URL('https://example.com/image/thumb');
 	url.searchParams.set('url', imageUrl);
 	url.searchParams.set('width', width.toString());
 	url.searchParams.set('height', height.toString());

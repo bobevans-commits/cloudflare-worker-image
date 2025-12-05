@@ -9,8 +9,9 @@
  * 
  * 功能：
  * 1. 图片格式转换：/image/to/:format?url=...&quality=...&size=...
- * 2. 缩略图生成：/thumb?url=...&width=...&height=...&fit=...&quality=...
- *    （注意：缩略图统一使用 webp 格式输出，format 参数将被忽略）
+ * 2. 缩略图生成：/image/thumb?url=...&width=...&height=...&fit=...&quality=...
+ *    - 参数默认值：width=200, height=200, fit=cover, quality=85
+ *    - 注意：缩略图统一使用 webp 格式输出，format 参数将被忽略
  * 
  * 支持的格式：webp, jpeg, png, avif
  * 支持的请求方式：GET（通过 URL 参数）和 POST（通过文件上传）
@@ -18,7 +19,7 @@
 
 import { Hono } from 'hono';
 import { authMiddleware, methodMiddleware, cacheMiddleware } from './middlewares/index.js';
-import { createHealthRoutes, createThumbnailRoutes, createImageRoutes } from './routes/index.js';
+import { createHealthRoutes, createImageRoutes } from './routes/index.js';
 
 // 创建 Hono 应用实例
 const app = new Hono();
@@ -30,7 +31,6 @@ app.use('*', cacheMiddleware);
 
 // 注册路由
 app.route('/', createHealthRoutes());
-app.route('/', createThumbnailRoutes());
 app.route('/', createImageRoutes());
 
 /**
