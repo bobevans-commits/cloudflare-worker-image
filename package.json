@@ -1,5 +1,5 @@
 {
-  "name": "image",
+  "name": "cloudflare-worker-image",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -19,7 +19,6 @@
     "@jsquash/png": "^3.0.1",
     "@jsquash/resize": "^2.1.0",
     "@jsquash/webp": "^1.4.0",
-    "hono": "^4.7.4",
     "query-string": "^9.1.0"
   },
   "pnpm": {}
