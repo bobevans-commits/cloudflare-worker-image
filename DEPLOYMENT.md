@@ -78,9 +78,10 @@ railway up
 
 ### 5. 注意事项
 
-- Railway 使用 Nixpacks 自动构建
-- 启动命令：`gunicorn main:app`
+- Railway 使用 Railpack 自动构建
+- 启动命令：`gunicorn main:app --bind 0.0.0.0:$PORT`
 - 确保 `requirements.txt` 包含 `gunicorn`
+- Railway 会自动设置 `PORT` 环境变量
 
 ## Netlify 部署
 

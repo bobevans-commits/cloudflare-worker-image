@@ -1,82 +1,122 @@
-# Cloudflare Worker Image
+# 图片处理服务
 
-使用 Cloudflare Worker 处理图片, 依赖 Photon，支持缩放、剪裁、水印、滤镜等功能。
+支持多平台部署的图片处理服务，提供图片格式转换和缩略图生成功能。
 
 ---
 
-![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-F69652?style=flat&logo=cloudflare&logoColor=white)
-![GitHub License](https://img.shields.io/github/license/ccbikai/cloudflare-worker-image)
-![GitHub Repo stars](https://img.shields.io/github/stars/ccbikai/cloudflare-worker-image)
+![Python](https://img.shields.io/badge/Python-3.11+-blue)
+![Flask](https://img.shields.io/badge/Flask-3.1.0-green)
+![License](https://img.shields.io/badge/license-MIT-blue)
 
-> 已经适配了 Vercel Edge, 见 <https://github.com/ccbikai/vercel-edge-image> 。
+## 支持平台
 
-## 支持特性
+- ✅ **Vercel** - Serverless Functions
+- ✅ **Railway** - Container Deployment
+- ✅ **Netlify** - Serverless Functions
+- ✅ **Cloudflare Workers** - Edge Computing
 
-1. 支持 PNG、JPEG、BMP、ICO、TIFF 格式图片处理
-2. 可输出 JPEG、PNG、WEBP 格式图片，默认输出 WEBP 格式图片
-3. 支持管道操作，可以执行多个操作
-4. 支持 Cloudflare 缓存
-5. 支持图片地址白名单，防滥用
-6. 异常降级，如果处理失败返回原图（异常场景不缓存）
+## 主要特性
 
-## 部署方式
+1. **图片格式转换** - 支持 webp, jpeg, png, avif 格式转换
+2. **缩略图生成** - 支持等比例缩放，禁止变形
+3. **自适应尺寸** - 支持固定宽度或高度，自动计算另一个维度
+4. **POST 文件上传** - 支持 multipart/form-data 文件上传
+5. **API 认证** - 支持 API Key 认证（可选）
+6. **多平台部署** - 一套代码，多平台部署
 
-```sh
-# patch 功能依赖 pnpm, 如果不使用 pnpm, 需要自己处理 patch-package https://www.npmjs.com/package/patch-package
-npm i -g pnpm
+## 快速开始
 
-# 克隆此项目
-git clone https://github.com/ccbikai/cloudflare-worker-image.git
-cd cloudflare-worker-image
+### 本地开发
 
+```bash
 # 安装依赖
-pnpm install
+pip install -r requirements.txt
 
-# 修改白名单配置，改为图片域名或者留空不限制图片地址
-vi wrangler.toml # WHITE_LIST
+# 设置环境变量（可选）
+export AUTH_ENABLED=false
+export API_KEY=test-key
 
-# 发布
-npm run deploy
+# 运行应用
+python main.py
 ```
 
-## 使用方式
+### 部署
 
-修改域名和参数即可使用, 参考：<https://image.miantiao.me/?url=https%3A%2F%2Fstatic.miantiao.me%2Fshare%2FMTyerw%2Fbanner-2048.jpeg&action=resize!830,400,2>
+详细部署说明请查看 [DEPLOYMENT.md](./DEPLOYMENT.md)
 
-### 参数说明
+**快速部署：**
 
-url:
-> 原图地址，需要使用 encodeURIComponent 编码
+- **Vercel**: `vercel --prod`
+- **Railway**: `railway up`
+- **Netlify**: `netlify deploy --prod`
 
-action:
-> 操作指令, 支持 [Photon](https://docs.rs/photon-rs/latest/photon_rs/) 各种操作指令，指令与参数直接使用`!`分割，参考 `resize!830,400,2`
->
-> 支持管道操作，多个操作指令使用`|`分割，参考 `resize!830,400,2|watermark!https%3A%2F%2Fstatic.miantiao.me%2Fshare%2F6qIq4w%2FFhSUzU.png,10,10`
->
-> 如果参数中有 URL 或其他特殊字符，需要使用 encodeURIComponent 编码 URL 和 特殊字符
+## API 接口
 
-format:
-> 输出图片格式，支持：`jpg,webp,png`，可选，默认 webp
+### 1. 图片格式转换
 
-quality:
-> 图片质量，1-100 只有 webp 和 jpg 格式支持，可选，默认 99
+```
+GET/POST /image/to/<format>?url=...&quality=...&size=...
+```
 
-## 演示
+支持的格式：`webp`, `jpeg`, `jpg`, `png`, `avif`
 
-### 缩放+旋转+文字水印
+### 2. 缩略图生成
 
-![demo](https://image.miantiao.me/?url=https%3A%2F%2Fstatic.miantiao.me%2Fshare%2FMTyerw%2Fbanner-2048.jpeg&action=resize!830,400,2%7Crotate!180%7Cdraw_text!miantiao.me,10,10)
+```
+GET/POST /image/thumb?url=...&width=...&height=...&fit=...&quality=...
+```
 
-由于 Github 会缓存图片，请前往我博客查看真实示例。
+参数说明：
+- `url` (GET 必需): 图片 URL
+- `width` / `w` (可选): 宽度，默认 200，支持自适应
+- `height` / `h` (可选): 高度，默认 200，支持自适应
+- `fit` (可选): 裁剪模式，`cover`（默认）或 `contain`
+- `quality` / `q` (可选): 质量 1-100，默认 85
 
-<http://chi.miantiao.me/post/cloudflare-worker-image/>
+**注意**：缩略图统一输出 webp 格式
 
-## 致谢
+### 3. 健康检查
 
-- [Cloudflare](https://www.cloudflare.com)
-- [photon](https://github.com/silvia-odwyer/photon)
-- [jSquash](https://github.com/jamsinclair/jSquash)
+```
+GET / 或 GET /health
+```
 
----
+## 使用示例
 
-[![Buy Me A Coffee](https://static.miantiao.me/share/0WmsVP/CcmGr8.png)](https://www.buymeacoffee.com/ccbikai)
+详细使用说明请查看 [USAGE.md](./USAGE.md)
+
+**基本示例：**
+
+```bash
+# 健康检查
+curl https://your-domain.com/
+
+# 图片格式转换
+curl "https://your-domain.com/image/to/webp?url=https://example.com/image.jpg" \
+  -H "X-API-KEY: your-api-key"
+
+# 缩略图生成（固定宽度，高度自适应）
+curl "https://your-domain.com/image/thumb?url=https://example.com/image.jpg&width=300" \
+  -H "X-API-KEY: your-api-key"
+
+# POST 文件上传
+curl -X POST "https://your-domain.com/image/thumb?width=300" \
+  -H "X-API-KEY: your-api-key" \
+  -F "file=@image.jpg"
+```
+
+## 文档
+
+- [USAGE.md](./USAGE.md) - API 使用文档
+- [DEPLOYMENT.md](./DEPLOYMENT.md) - 部署指南
+
+## 技术栈
+
+- **Python 3.11+**
+- **Flask 3.1.0** - Web 框架
+- **Pillow** - 图片处理
+- **jSquash** (Cloudflare Workers) - 图片编解码
+
+## 许可证
+
+MIT License

@@ -29,8 +29,10 @@ def handler(event, context):
 		body = event.get('body', '')
 		is_base64_encoded = event.get('isBase64Encoded', False)
 		
-		# 处理请求体
+		# 处理请求体（支持 multipart/form-data）
 		request_data = None
+		content_type = headers.get('content-type', headers.get('Content-Type', ''))
+		
 		if body:
 			if is_base64_encoded:
 				request_data = base64.b64decode(body)
@@ -44,13 +46,20 @@ def handler(event, context):
 			header_name = '-'.join([w.capitalize() for w in key.replace('_', '-').split('-')])
 			flask_headers[header_name] = value
 		
+		# 对于 multipart/form-data，需要特殊处理
+		if 'multipart/form-data' in content_type:
+			# Netlify 会自动解析 multipart，但我们需要通过 Flask 的测试客户端来处理
+			# 这里我们直接传递原始 body，让 Flask 处理
+			flask_headers['Content-Type'] = content_type
+		
 		# 创建 Flask 测试客户端环境
 		with app.test_request_context(
 			path='/image/thumb',
 			method=method,
 			query_string=query_string,
 			headers=flask_headers,
-			data=request_data
+			data=request_data,
+			content_type=content_type if 'multipart/form-data' in content_type else None
 		):
 			# 处理请求
 			response = app.full_dispatch_request()
