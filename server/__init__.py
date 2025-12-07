@@ -7,20 +7,40 @@ from .routes.image import image_blue
 
 # 实例化，可视为固定格式
 app = Flask(__name__)
-app.config['API_KEY'] = os.environ.get('API_KEY', '123456')
-# 获取环境变量中的API_KEY
-API_KEY = app.config['API_KEY']
+
+# 从环境变量读取配置
+AUTH_ENABLED = os.environ.get('AUTH_ENABLED', 'true').lower() != 'false'
+API_KEY_HEADER = os.environ.get('API_KEY_HEADER', 'X-API-KEY')
+API_KEY = os.environ.get('API_KEY', '')
+
+# 支持多个 API Key（用逗号分隔）
+if API_KEY:
+	VALID_API_KEYS = [key.strip() for key in API_KEY.split(',') if key.strip()]
+else:
+	VALID_API_KEYS = []
 
 
 # request 拦截器
 # 如果 handler_before_request 返回 None，Flask 会继续处理请求，调用相应的视图函数
 @app.before_request
 def handler_before_request():
+	# 如果未启用认证，直接通过
+	if not AUTH_ENABLED:
+		return None
+	
+	# 如果未配置 API Key，返回错误
+	if not VALID_API_KEYS:
+		return jsonify({
+			"error": "API Key not configured. Please set API_KEY in environment variables."
+		}), 500
+	
 	# 检查请求头中是否包含 API Key
-	api_key = request.headers.get('X-API-KEY')
-	if api_key != API_KEY:
-		# 如果 API Key 无效，返回 401 Unauthorized
+	request_api_key = request.headers.get(API_KEY_HEADER)
+	
+	# 验证 API Key（检查是否在有效列表中）
+	if not request_api_key or request_api_key not in VALID_API_KEYS:
 		return jsonify({"error": "Unauthorized"}), 401
+	
 	# 如果 API Key 有效，继续处理请求
 	return None
 
