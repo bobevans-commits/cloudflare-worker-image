@@ -10,6 +10,18 @@
   PYTHON_VERSION = "3.11"
 
 [[redirects]]
+  from = "/"
+  to = "/.netlify/functions/health"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/health"
+  to = "/.netlify/functions/health"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/image/to/*"
   to = "/.netlify/functions/image"
   status = 200

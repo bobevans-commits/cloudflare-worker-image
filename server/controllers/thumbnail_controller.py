@@ -3,7 +3,7 @@
 处理缩略图生成相关业务逻辑
 """
 
-from flask import request, jsonify, send_file
+from flask import request, jsonify, send_file, make_response
 from PIL import Image
 import pillow_avif
 from io import BytesIO
@@ -184,17 +184,12 @@ def generate_thumbnail():
 		output.seek(0)
 		
 		# 返回缩略图
-		response = send_file(
-			output,
-			mimetype='image/webp',
-			headers={
-				'Cache-Control': f'public, max-age={CACHE_MAX_AGE}, immutable',
-				'X-Thumbnail-Size': f'{width_value}x{height_value}',
-				'X-Original-Size': str(len(image_data)),
-				'X-Thumbnail-Size-Bytes': str(output.tell()),
-				'X-Format': 'webp'
-			}
-		)
+		response = make_response(send_file(output, mimetype='image/webp'))
+		response.headers['Cache-Control'] = f'public, max-age={CACHE_MAX_AGE}, immutable'
+		response.headers['X-Thumbnail-Size'] = f'{width_value}x{height_value}'
+		response.headers['X-Original-Size'] = str(len(image_data))
+		response.headers['X-Thumbnail-Size-Bytes'] = str(output.tell())
+		response.headers['X-Format'] = 'webp'
 		return response
 		
 	except Exception as e:

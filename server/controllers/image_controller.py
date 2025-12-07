@@ -3,7 +3,7 @@
 处理图片格式转换相关业务逻辑
 """
 
-from flask import request, jsonify, send_file
+from flask import request, jsonify, send_file, make_response
 from PIL import Image
 import pillow_avif
 import requests
@@ -54,28 +54,57 @@ def get_image_data():
 			raise ValueError(f"Failed to fetch image: {str(e)}")
 	else:
 		# POST 请求：从请求体获取文件数据
-		if not request.data:
-			raise ValueError('Missing image data in request body')
-		
-		# 支持 multipart/form-data 格式
+		# 优先检查 multipart/form-data 格式
 		if request.content_type and 'multipart/form-data' in request.content_type:
-			if 'file' not in request.files:
-				raise ValueError('Missing file in form data. Use field name: file')
+			# 支持多种字段名：file, image, blob
+			file = None
+			for field_name in ['file', 'image', 'blob']:
+				if field_name in request.files:
+					file = request.files[field_name]
+					break
 			
-			file = request.files['file']
-			if not file or file.filename == '':
+			if not file:
+				raise ValueError('Missing file in form data. Use field name: file, image, or blob')
+			
+			if file.filename == '':
 				raise ValueError('No file selected')
 			
-			# 验证文件类型
-			if not file.content_type or not file.content_type.startswith('image/'):
-				raise ValueError('Uploaded file must be an image')
+			# 验证文件类型（支持通过 Content-Type 或文件扩展名）
+			content_type = file.content_type or ''
+			filename = file.filename.lower()
 			
-			return file.read()
+			# 检查 Content-Type
+			is_image_by_type = content_type.startswith('image/')
+			
+			# 检查文件扩展名
+			image_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.avif', '.ico']
+			is_image_by_ext = any(filename.endswith(ext) for ext in image_extensions)
+			
+			if not is_image_by_type and not is_image_by_ext:
+				# 如果都不匹配，尝试读取文件头验证（允许 PIL 来处理）
+				file_data = file.read()
+				file.seek(0)
+				# 检查常见的图片文件头
+				image_signatures = [
+					b'\xff\xd8\xff',  # JPEG
+					b'\x89PNG',       # PNG
+					b'RIFF',          # WebP/AVIF (RIFF header)
+					b'GIF8',          # GIF
+					b'BM',            # BMP
+				]
+				is_image_by_header = any(file_data.startswith(sig) for sig in image_signatures)
+				
+				if not is_image_by_header:
+					raise ValueError(f'Uploaded file must be an image. Got Content-Type: {content_type}, Filename: {file.filename}')
+			
+			file_data = file.read()
+			print(f"[GET_IMAGE_DATA] Uploaded file: {file.filename}, Content-Type: {content_type}, Size: {len(file_data)}")
+			return file_data
 		else:
 			# 支持直接发送二进制数据
 			image_data = request.data
 			if not image_data or len(image_data) == 0:
-				raise ValueError('Missing image data in request body')
+				raise ValueError('Missing image data in request body. For file upload, use multipart/form-data with field name: file')
 			return image_data
 
 
@@ -209,15 +238,10 @@ def convert_image(image_format):
 		output.seek(0)
 		
 		# 返回转换后的图片
-		response = send_file(
-			output,
-			mimetype=f'image/{image_format_lower}',
-			headers={
-				'Cache-Control': f'public, max-age={CACHE_MAX_AGE}, immutable',
-				'X-Original-Size': str(len(image_data)),
-				'X-Converted-Size': str(output.tell())
-			}
-		)
+		response = make_response(send_file(output, mimetype=f'image/{image_format_lower}'))
+		response.headers['Cache-Control'] = f'public, max-age={CACHE_MAX_AGE}, immutable'
+		response.headers['X-Original-Size'] = str(len(image_data))
+		response.headers['X-Converted-Size'] = str(output.tell())
 		return response
 		
 	except Exception as e:

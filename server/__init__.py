@@ -4,6 +4,7 @@ import os
 from flask import Flask, request, jsonify
 # 导入蓝图
 from .routes.image import image_blue
+from .routes.health import health_blue
 
 # 实例化，可视为固定格式
 app = Flask(__name__)
@@ -94,6 +95,7 @@ def handler_after_request(response):
 # 创建app
 def create_app():
 	# 注册蓝图
+	app.register_blueprint(blueprint=health_blue)
 	app.register_blueprint(blueprint=image_blue)
 	return app
 

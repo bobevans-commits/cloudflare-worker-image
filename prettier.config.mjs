@@ -1,4 +1,4 @@
-{
+export default {
 	"printWidth": 240,
 	"singleQuote": true,
 	"semi": true,
