@@ -1,0 +1,13 @@
+# Railpack 配置文件（可选）
+# 如果 Railpack 自动检测失败，可以使用此文件进行配置
+
+[build]
+# Python 版本（Railpack 会自动从 runtime.txt 或 requirements.txt 检测）
+# python = "3.11"
+
+# 构建命令（Railpack 会自动检测 requirements.txt）
+# build = "pip install -r requirements.txt"
+
+# 启动命令
+start = "gunicorn main:app --bind 0.0.0.0:$PORT"
+
