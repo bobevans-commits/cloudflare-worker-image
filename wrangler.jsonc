@@ -8,10 +8,11 @@
   // 环境变量配置
   "vars": {
     "WHITE_LIST": "",
-    // "AUTH_ENABLED": "true", // 是否启用认证（可选，默认为 true）
-    // "API_KEY_HEADER": "X-API-KEY" // API Key 请求头名称（可选，默认为 'X-API-KEY'）
-    // 注意：API_KEY 应使用 secrets 配置，不要放在 vars 中
-    // 使用命令：wrangler secret put API_KEY
+    "AUTH_ENABLED": "true", // 是否启用认证（可选，默认为 true）
+    "API_KEY_HEADER": "X-API-KEY", // API Key 请求头名称（可选，默认为 'X-API-KEY'）
+    "API_KEY": "cloudflare-worker-image" // API Key 值（支持多个值用逗号分隔，如："key1,key2,key3"）
+    // 注意：也可以使用 secrets 配置：wrangler secret put API_KEY
+    // 优先级：vars.API_KEY > secrets.API_KEY
   }
 }
 

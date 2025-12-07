@@ -54,7 +54,9 @@ export const DEFAULT_THUMBNAIL_FIT = 'cover';
 export const IMAGE_MAX_SIZE = 10000;
 
 /**
- * 有效的裁剪模式
+ * 有效的裁剪模式（等比例缩放，禁止变形）
+ * cover：保持宽高比，填满目标尺寸，可能裁剪（默认）
+ * contain：保持宽高比，完整显示，可能留白
  */
-export const VALID_FIT_METHODS = ['cover', 'contain', 'fill'];
+export const VALID_FIT_METHODS = ['cover', 'contain'];
 

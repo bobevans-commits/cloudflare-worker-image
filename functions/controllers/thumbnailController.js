@@ -19,15 +19,45 @@ import { getImageData } from './imageController.js';
 
 /**
  * 验证并解析宽度和高度参数
+ * 支持自适应：只提供 width 时高度按比例计算，只提供 height 时宽度按比例计算
  * 默认值：width=200, height=200
  * @param {string} width - 宽度参数
  * @param {string} height - 高度参数
+ * @param {number} originalWidth - 原图宽度
+ * @param {number} originalHeight - 原图高度
  * @returns {Object} 宽度和高度值
  */
-function validateDimensions(width, height) {
-	// 如果未提供参数，使用默认值
-	const widthValue = width ? parseInt(width, 10) : DEFAULT_THUMBNAIL_WIDTH;
-	const heightValue = height ? parseInt(height, 10) : DEFAULT_THUMBNAIL_HEIGHT;
+function validateDimensions(width, height, originalWidth, originalHeight) {
+	const hasWidth = width && width.trim() !== '';
+	const hasHeight = height && height.trim() !== '';
+	
+	let widthValue, heightValue;
+	
+	if (hasWidth && hasHeight) {
+		// 两者都提供，使用指定值
+		widthValue = parseInt(width, 10);
+		heightValue = parseInt(height, 10);
+	} else if (hasWidth) {
+		// 只提供宽度，高度按比例自适应
+		widthValue = parseInt(width, 10);
+		if (originalWidth > 0 && originalHeight > 0) {
+			heightValue = Math.round((widthValue * originalHeight) / originalWidth);
+		} else {
+			heightValue = DEFAULT_THUMBNAIL_HEIGHT;
+		}
+	} else if (hasHeight) {
+		// 只提供高度，宽度按比例自适应
+		heightValue = parseInt(height, 10);
+		if (originalWidth > 0 && originalHeight > 0) {
+			widthValue = Math.round((heightValue * originalWidth) / originalHeight);
+		} else {
+			widthValue = DEFAULT_THUMBNAIL_WIDTH;
+		}
+	} else {
+		// 两者都未提供，使用默认值
+		widthValue = DEFAULT_THUMBNAIL_WIDTH;
+		heightValue = DEFAULT_THUMBNAIL_HEIGHT;
+	}
 	
 	// 验证数值有效性
 	if (isNaN(widthValue) || isNaN(heightValue) || widthValue <= 0 || heightValue <= 0 || 
@@ -40,7 +70,7 @@ function validateDimensions(width, height) {
 
 /**
  * 验证裁剪模式
- * 默认值：cover
+ * 默认值：cover（等比例缩放，填满目标尺寸，禁止变形）
  * @param {string} fitMethod - 裁剪模式
  * @returns {string} 验证后的裁剪模式
  */
@@ -96,7 +126,7 @@ function validateQuality(quality) {
  */
 export async function generateThumbnail(c) {
 	try {
-		// 解析查询参数（所有参数都有默认值）
+		// 解析查询参数
 		const width = c.req.query('width') || c.req.query('w');
 		const height = c.req.query('height') || c.req.query('h');
 		const fitMethod = c.req.query('fit');
@@ -104,10 +134,9 @@ export async function generateThumbnail(c) {
 		// 缩略图统一使用 webp 格式，忽略用户传入的 format 参数
 		const formatValue = 'webp';
 		
-		// 验证参数
-		let widthValue, heightValue, fitMethodValue, qualityValue;
+		// 验证基础参数
+		let fitMethodValue, qualityValue;
 		try {
-			({ widthValue, heightValue } = validateDimensions(width, height));
 			fitMethodValue = validateFitMethod(fitMethod);
 			qualityValue = validateQuality(quality);
 		} catch (e) {
@@ -139,6 +168,18 @@ export async function generateThumbnail(c) {
 			decodedImageData = await decodeImage(imageData, originalFormat);
 		} catch (e) {
 			return c.json({ error: `Failed to decode image: ${e.message}` }, 400);
+		}
+		
+		// 获取原图尺寸，用于计算自适应尺寸
+		const originalWidth = decodedImageData.width;
+		const originalHeight = decodedImageData.height;
+		
+		// 验证并计算目标尺寸（支持自适应）
+		let widthValue, heightValue;
+		try {
+			({ widthValue, heightValue } = validateDimensions(width, height, originalWidth, originalHeight));
+		} catch (e) {
+			return c.json({ error: e.message }, 400);
 		}
 		
 		// 生成缩略图（调整尺寸）
