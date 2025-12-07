@@ -24,6 +24,14 @@ else:
 # 如果 handler_before_request 返回 None，Flask 会继续处理请求，调用相应的视图函数
 @app.before_request
 def handler_before_request():
+	# 记录请求信息（用于调试）
+	import logging
+	logger = logging.getLogger(__name__)
+	logger.setLevel(logging.INFO)
+	
+	# 打印请求信息到控制台（Vercel 会捕获这些日志）
+	print(f"[REQUEST] Method: {request.method}, Path: {request.path}, Headers: {dict(request.headers)}")
+	
 	# 处理 OPTIONS 请求（CORS 预检）
 	if request.method == 'OPTIONS':
 		response = jsonify({})
@@ -34,10 +42,12 @@ def handler_before_request():
 	
 	# 如果未启用认证，直接通过
 	if not AUTH_ENABLED:
+		print("[AUTH] Authentication disabled, allowing request")
 		return None
 	
 	# 如果未配置 API Key，返回错误
 	if not VALID_API_KEYS:
+		print("[AUTH] No API keys configured")
 		return jsonify({
 			"error": "API Key not configured. Please set API_KEY in environment variables."
 		}), 500
@@ -52,14 +62,18 @@ def handler_before_request():
 		request.headers.get('X-API-KEY')
 	)
 	
+	print(f"[AUTH] API Key header: {API_KEY_HEADER}, Received: {bool(request_api_key)}")
+	
 	# 验证 API Key（检查是否在有效列表中）
 	if not request_api_key or request_api_key not in VALID_API_KEYS:
+		print(f"[AUTH] Unauthorized - Invalid or missing API Key")
 		return jsonify({
 			"error": "Unauthorized",
 			"message": "Invalid or missing API Key",
 			"header_name": API_KEY_HEADER
 		}), 401
 	
+	print("[AUTH] API Key validated successfully")
 	# 如果 API Key 有效，继续处理请求
 	return None
 
@@ -67,6 +81,9 @@ def handler_before_request():
 # response 拦截器
 @app.after_request
 def handler_after_request(response):
+	# 记录响应信息（用于调试）
+	print(f"[RESPONSE] Status: {response.status_code}, Path: {request.path}")
+	
 	# 添加 CORS 头（如果需要）
 	response.headers['Access-Control-Allow-Origin'] = '*'
 	response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'

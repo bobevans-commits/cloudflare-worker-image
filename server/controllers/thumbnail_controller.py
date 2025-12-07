@@ -109,6 +109,10 @@ def generate_thumbnail():
 	注意：缩略图统一使用 webp 格式输出
 	:return: Flask Response 对象
 	"""
+	print(f"[THUMBNAIL] Request method: {request.method}, Content-Type: {request.content_type}")
+	print(f"[THUMBNAIL] Has data: {bool(request.data)}, Data length: {len(request.data) if request.data else 0}")
+	print(f"[THUMBNAIL] Has files: {bool(request.files)}, Files: {list(request.files.keys()) if request.files else []}")
+	
 	try:
 		# 解析查询参数
 		width = request.args.get('width') or request.args.get('w')

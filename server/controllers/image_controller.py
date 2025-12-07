@@ -31,6 +31,10 @@ def get_image_data():
 	:return: 图片数据（bytes）
 	:raises: ValueError 当无法获取图片数据时
 	"""
+	print(f"[GET_IMAGE_DATA] Method: {request.method}, Content-Type: {request.content_type}")
+	print(f"[GET_IMAGE_DATA] Has data: {bool(request.data)}, Data length: {len(request.data) if request.data else 0}")
+	print(f"[GET_IMAGE_DATA] Has files: {bool(request.files)}, Files: {list(request.files.keys()) if request.files else []}")
+	
 	if request.method == 'GET':
 		# GET 请求：从查询参数获取图片 URL
 		image_url = request.args.get('url')
